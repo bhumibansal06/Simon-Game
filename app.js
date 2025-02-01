@@ -1,19 +1,20 @@
 let gameSeq = [];
 let userSeq = [];
-
 let started = false;
 let level = 0;
+let highScore = localStorage.getItem("highScore") || 0; // Store high score
 let h2 = document.querySelector('h2');
 let btns = ["pink", "blue", "yellow", "green"];
 
-document.addEventListener("keypress", function() {
-    if(started == false) {
+// Event listener to start the game
+document.addEventListener("keypress", function () {
+    if (started === false) {
         started = true;
-
         levelUp();
     }
 });
 
+// Button flash effect
 function btnFlash(btn) {
     btn.classList.add("flash");
     setTimeout(function () {
@@ -21,51 +22,59 @@ function btnFlash(btn) {
     }, 250);
 }
 
-function levelUp () {
+// Level Up logic - add a new button to sequence, flash it
+function levelUp() {
     userSeq = [];
     level++;
-    h2.innerText = `level ${level}`;
+    h2.innerText = `Level ${level} | High Score: ${highScore}`;
 
-    let randomIdx = Math.floor(Math.random() * 3);
+    let randomIdx = Math.floor(Math.random() * 4); // Use 4 colors, not 3
     let randomColor = btns[randomIdx];
-    let randomBtn = document.querySelector(`.${randomColor}`);
-    gameSeq.push(randomColor)
+    let randomBtn = document.querySelector(`#${randomColor}`);
+    gameSeq.push(randomColor);
+
+    // Flash button
     btnFlash(randomBtn);
 }
 
-function checkAns (idx) {
-    if(userSeq[idx] === gameSeq[idx]) {
-        if(userSeq.length == gameSeq.length) {
-            setTimeout(levelUp, 1000);
+// Check user's answer
+function checkAns(idx) {
+    if (userSeq[idx] === gameSeq[idx]) {
+        if (userSeq.length === gameSeq.length) {
+            setTimeout(levelUp, 1000); // Proceed to next level after 1 sec
         }
     } else {
-        h2.innerText = "Game over. Press any key to start a new game";
-        document.querySelector('body').style.backgroundColor = "red";
-        setTimeout(function () {
-            document.querySelector('body').style.backgroundColor = "white";
-    }, 250);
-        
-    reset();
-    }
+        if (level > highScore) {
+            highScore = level;
+            localStorage.setItem("highScore", highScore);
+        }
 
+        h2.innerText = `Game Over! Score: ${level}, High Score: ${highScore}. Press any key or click Start to retry.`;
+        document.body.classList.add("game-over"); // Shake effect
+        setTimeout(() => document.body.classList.remove("game-over"), 500); // Remove shake after animation
+
+        reset();
+    }
 }
 
+// Handle button press by user
 function btnPress() {
     let btn = this;
     btnFlash(btn);
 
-    usercolor = btn.getAttribute("id");
-    userSeq.push(usercolor);
-    console.log(userSeq);
+    let userColor = btn.getAttribute("id");
+    userSeq.push(userColor);
 
-    checkAns(userSeq.length-1);
+    checkAns(userSeq.length - 1);
 }
 
+// Attach click event to buttons
 let allBtns = document.querySelectorAll('.btn');
-for(btn of allBtns) {
+for (let btn of allBtns) {
     btn.addEventListener("click", btnPress);
 }
 
+// Reset game data
 function reset() {
     started = false;
     gameSeq = [];
